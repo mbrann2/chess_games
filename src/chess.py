@@ -232,36 +232,38 @@ def chess_correlations(white, black, path="images/correlations.png"):
 
 ###
 
-# Logistic Regression for white with 5 folds to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
-# Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, and log loss were determined for white.
+# Logistic Regression for white with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm.
+# Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for white.
 
-def test_train_white(chess_df, path="images/roc_curve_white.png"):
+def test_train_white(chess_df, path='images/roc_curve_white.png'):
     chess_df = chess_df.copy()
-    chess_df['Rating Differential White'] = (chess_df['white_rating'] - chess_df['black_rating']).astype(int)
+    chess_df['Rating Differential White'] = (
+        chess_df['white_rating'] - chess_df['black_rating']).astype(int)
     white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
-    
+
     def victory_status(s):
-        if s == 'black' or s == 'draw' :
+        if s == 'black' or s == 'draw':
             return 0
 
         else:
             return 1
-    
-    white_greater_100['winner'] = white_greater_100['winner'].apply(victory_status).astype(int)
 
+    white_greater_100['winner'] = white_greater_100['winner'].apply(
+        victory_status).astype(int)
 
-    X = white_greater_100[['turns', 'opening_ply', 'Rating Differential White']].astype(int)
+    X = white_greater_100[['turns', 'opening_ply',
+                           'Rating Differential White']].astype(int)
     y = white_greater_100['winner']
 
     random_seed = 8
-   
-    
-    def cross_val_linear(X, y, k):    
-        
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_seed, stratify=y)
-    
+
+    def cross_val_linear(X, y, k):
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=random_seed, stratify=y)
+
         kf = KFold(k)
-    
+
         kf.get_n_splits(X_train)
 
         accuracy_list = []
@@ -291,26 +293,44 @@ def test_train_white(chess_df, path="images/roc_curve_white.png"):
             recall_list.append(metrics.recall_score(y_test_kfold,y_pred))
             f1_score_list.append(f1_score(y_test_kfold, y_pred, average='binary', zero_division='warn'))
             log_loss_list.append(log_loss(y_test_kfold, y_prob, normalize = True))
+            log_loss_prob = (-1*np.log(log_loss_list))
         plt.plot([0,1], [0,1])
         plt.legend()
         plt.title('ROC Curve: White')
         plt.xlabel('False Positive Rate: White')
         plt.ylabel('True Positive Rate: White')
         plt.savefig(path)
-        return print({'Mean Accuracy List [White]': np.mean(accuracy_list), 'Mean Precision List [White]': np.mean(precision_list), 'Mean Recall List [White]': np.mean(recall_list), 'Mean F1 Score [White]': np.mean(f1_score_list), 'Mean Log Loss [White]': np.mean(log_loss_list)})
+        return print({'Mean Accuracy List [White]': np.mean(accuracy_list), 'Mean Precision List [White]': np.mean(precision_list), 'Mean Recall List [White]': np.mean(recall_list), 'Mean F1 Score [White]': np.mean(f1_score_list), 'Mean Log Loss [White]': np.mean(log_loss_list), 'Mean Log Loss Probability [White]': np.mean(log_loss_prob)})
         
 
 
     cross_val_linear(X, y, 5)
 
+
+# The average accuracy and average precision across all 5 folds for white are both respectable and nearly the same with the average accuracy being approximately 72.42% and the average precision being approximately 72.70%.
+# Accuracy is a function of true positives, true negatives, false positives, or probability of false alarms, and false negatives, or probability of incorrectly identifying that an attribute is absent.
+# We can ascertain that our logistic regression model is being reduced due to the reasonable amount of false positives that are present and is supported by our precision also being reduced due to the same false positive generation.
+# Precision is a function of true positives, or probability of detection, and false positives, which is the probability of a false alarm. 
+# We can ascertain that our logistic regression model has a reasonable amount of false positives, or incorrectly predicting the positive class of 1, when it should be predicting the negative class of 0, hence false positives are generated. 
+# The average recall across all 5 folds for white was excellent with a result of approximately 99.24%.
+# Recall is a function of true positives, or probability of detection, and false negatives, which is the probability of incorrectly identifying that an attribute is absent.
+# We can ascertain that our logistic regression model has very few false negatives, which would be missing the ability to successsfully predict the correct, positive class of 1 and instead predicting a negative class of 0.
+# The average F1 Score across all 5 folds for white was very good with a result of approximately 83.91%.
+# The average F1 score is a function of the average precision and average recall. 
+# The relatively good mean precision of 72.70% and stellar mean recall of 99.24% is yielding the great F1 score of approximately 83.91% 
+# The average log loss across all 5 folds for white was only average with a result of approximately 0.5660, where 0 is optimal. 
+# The associated average probability of the log loss across all 5 folds for white was determined to be approximately 0.5696, which effectively denotes the probability of the logistic regression model predicting the proper class, 0 for draws & losses, and 1 for wins, respectively.
+# The mediocre result for average log loss and average log loss probability could be due to an imbalanced dataset that truly contains significantly more wins, or binary values of 1, in comparsion to draws & losses, or binary values of 0.
+
 ###
 
-# Logistic Regression for black with 5 folds to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
-# Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, and log loss were determined for black.
+# Logistic Regression for black with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
+# Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for black.
 
 def test_train_black(chess_df, path='images/roc_curve_black.png'):
     chess_df = chess_df.copy()
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
+    white_wins = chess_df[(chess_df['Rating Differential Black'] > 100) & (chess_df['winner'] == 'white')].value_counts()
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
 
     def victory_status(s):
@@ -364,17 +384,34 @@ def test_train_black(chess_df, path='images/roc_curve_black.png'):
             recall_list.append(metrics.recall_score(y_test_kfold,y_pred))
             f1_score_list.append(f1_score(y_test_kfold, y_pred, average='binary', zero_division='warn'))
             log_loss_list.append(log_loss(y_test_kfold, y_prob, normalize = True))
+            log_loss_prob = (-1*np.log(log_loss_list))
         plt.plot([0,1], [0,1])
         plt.legend()
         plt.title('ROC Curve: Black')
         plt.xlabel('False Positive Rate: Black')
         plt.ylabel('True Positive Rate: Black')
         plt.savefig(path)
-        return print({'Mean Accuracy List [Black]': np.mean(accuracy_list), 'Mean Precision List [Black]': np.mean(precision_list), 'Mean Recall List [Black]': np.mean(recall_list), 'Mean F1 Score [Black]': np.mean(f1_score_list), 'Mean Log Loss [Black]': np.mean(log_loss_list)})
+        return print({'Mean Accuracy List [Black]': np.mean(accuracy_list), 'Mean Precision List [Black]': np.mean(precision_list), 'Mean Recall List [Black]': np.mean(recall_list), 'Mean F1 Score [Black]': np.mean(f1_score_list), 'Mean Log Loss [Black]': np.mean(log_loss_list), 'Mean Log Loss Probability [Black]': np.mean(log_loss_prob)})
         
 
 
     cross_val_linear(X, y, 5)
+
+
+# The average accuracy and average precision across all 5 folds for black are both respectable and nearly the same with the average accuracy being approximately 69.38% and the average precision being approximately 69.39%.
+# Accuracy is a function of true positives, true negatives, false positives, or probability of false alarms, and false negatives, or probability of incorrectly identifying that an attribute is absent.
+# We can ascertain that our logistic regression model is being reduced due to the reasonable amount of false positives that are present and is supported by our precision also being reduced due to the same false positive generation.
+# Precision is a function of true positives, or probability of detection, and false positives, which is the probability of a false alarm. 
+# We can ascertain that our logistic regression model has a reasonable amount of false positives, or incorrectly predicting the positive class of 1, when it should be predicting the negative class of 0, hence false positives are generated. 
+# The average recall across all 5 folds for black was excellent with a result of approximately 99.83%.
+# Recall is a function of true positives, or probability of detection, and false negatives, which is the probability of incorrectly identifying that an attribute is absent.
+# We can ascertain that our logistic regression model has very few false negatives, which would be missing the ability to successsfully predict the correct, positive class of 1 and instead predicting a negative class of 0.
+# The average F1 Score across all 5 folds for black was very good with a result of approximately 81.86%.
+# The average F1 score is a function of the average precision and average recall. 
+# The relatively good mean precision of 69.39% and stellar mean recall of 99.83% is yielding the great F1 score of approximately 81.86% 
+# The average log loss across all 5 folds for black was only average with a result of approximately 0.5969, where 0 is optimal. 
+# The associated average probability of the log loss across all 5 folds for black was determined to be approximately 0.5162, which effectively denotes the probability of the logistic regression model predicting the proper class, 0 for draws & losses, and 1 for wins, respectively.
+# The mediocre result for average log loss and average log loss probability could be due to an imbalanced dataset that truly contains significantly more wins, or binary values of 1, in comparsion to draws & losses, or binary values of 0.
 
 
 # Respective functions listed below to test outputs to terminal and images directory.
@@ -393,6 +430,6 @@ if __name__ == "__main__":
 
     # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
-    log_reg_white = test_train_white(chess_data)
+    # log_reg_white = test_train_white(chess_data)
 
-    # log_reg_black = test_train_black(chess_data)
+    log_reg_black = test_train_black(chess_data)
