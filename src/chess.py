@@ -235,7 +235,7 @@ def chess_correlations(white, black, path="images/correlations.png"):
 # Logistic Regression for white with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm.
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for white.
 
-def test_train_white(chess_df, path='images/roc_curve_white.png'):
+def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images/stats_model_white.png'):
     chess_df = chess_df.copy()
     chess_df['Rating Differential White'] = (
         chess_df['white_rating'] - chess_df['black_rating']).astype(int)
@@ -261,6 +261,19 @@ def test_train_white(chess_df, path='images/roc_curve_white.png'):
 
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=random_seed, stratify=y)
+
+        log_reg = sm.Logit(y_train, X_train).fit()
+
+        print(log_reg.summary())
+
+        plt.rc('figure', figsize=(12, 7))
+
+        plt.text(0.01, 0.05, str(log_reg.summary()), {'fontsize': 10}, fontproperties = 'monospace') 
+        plt.title('Logistic Regression Stats Model: White')
+        plt.axis('off')
+        plt.tight_layout()
+        plt.savefig(path2)
+        plt.clf()
 
         kf = KFold(k)
 
@@ -299,7 +312,8 @@ def test_train_white(chess_df, path='images/roc_curve_white.png'):
         plt.title('ROC Curve: White')
         plt.xlabel('False Positive Rate: White')
         plt.ylabel('True Positive Rate: White')
-        plt.savefig(path)
+        plt.tight_layout()
+        plt.savefig(path1)
         return print({'Mean Accuracy List [White]': np.mean(accuracy_list), 'Mean Precision List [White]': np.mean(precision_list), 'Mean Recall List [White]': np.mean(recall_list), 'Mean F1 Score [White]': np.mean(f1_score_list), 'Mean Log Loss [White]': np.mean(log_loss_list), 'Mean Log Loss Probability [White]': np.mean(log_loss_prob)})
         
 
@@ -327,10 +341,9 @@ def test_train_white(chess_df, path='images/roc_curve_white.png'):
 # Logistic Regression for black with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for black.
 
-def test_train_black(chess_df, path='images/roc_curve_black.png'):
+def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images/stats_model_black.png'):
     chess_df = chess_df.copy()
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
-    white_wins = chess_df[(chess_df['Rating Differential Black'] > 100) & (chess_df['winner'] == 'white')].value_counts()
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
 
     def victory_status(s):
@@ -352,6 +365,19 @@ def test_train_black(chess_df, path='images/roc_curve_black.png'):
     def cross_val_linear(X, y, k):    
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_seed, stratify=y)
+
+        log_reg = sm.Logit(y_train, X_train).fit()
+
+        print(log_reg.summary())
+
+        plt.rc('figure', figsize=(12, 7))
+
+        plt.text(0.01, 0.05, str(log_reg.summary()), {'fontsize': 10}, fontproperties = 'monospace') 
+        plt.title('Logistic Regression Stats Model: Black')
+        plt.axis('off')
+        plt.tight_layout()
+        plt.savefig(path2)
+        plt.clf()
     
         kf = KFold(k)
     
@@ -390,7 +416,8 @@ def test_train_black(chess_df, path='images/roc_curve_black.png'):
         plt.title('ROC Curve: Black')
         plt.xlabel('False Positive Rate: Black')
         plt.ylabel('True Positive Rate: Black')
-        plt.savefig(path)
+        plt.tight_layout()
+        plt.savefig(path1)
         return print({'Mean Accuracy List [Black]': np.mean(accuracy_list), 'Mean Precision List [Black]': np.mean(precision_list), 'Mean Recall List [Black]': np.mean(recall_list), 'Mean F1 Score [Black]': np.mean(f1_score_list), 'Mean Log Loss [Black]': np.mean(log_loss_list), 'Mean Log Loss Probability [Black]': np.mean(log_loss_prob)})
         
 
@@ -432,4 +459,4 @@ if __name__ == "__main__":
 
     # log_reg_white = test_train_white(chess_data)
 
-    log_reg_black = test_train_black(chess_data)
+    # log_reg_black = test_train_black(chess_data)
