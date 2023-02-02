@@ -235,7 +235,7 @@ def chess_correlations(white, black, path="images/correlations.png"):
 # Logistic Regression for white with 5 folds to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, and log loss were determined for white.
 
-def test_train_white(chess_df):
+def test_train_white(chess_df, path="images/roc_curve_white.png"):
     chess_df = chess_df.copy()
     chess_df['Rating Differential White'] = (chess_df['white_rating'] - chess_df['black_rating']).astype(int)
     white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
@@ -296,8 +296,7 @@ def test_train_white(chess_df):
         plt.title('ROC Curve: White')
         plt.xlabel('False Positive Rate: White')
         plt.ylabel('True Positive Rate: White')
-        plt.show()
-        plt.savefig("images/roc_curve_white.png")
+        plt.savefig(path)
         return print({'Mean Accuracy List [White]': np.mean(accuracy_list), 'Mean Precision List [White]': np.mean(precision_list), 'Mean Recall List [White]': np.mean(recall_list), 'Mean F1 Score [White]': np.mean(f1_score_list), 'Mean Log Loss [White]': np.mean(log_loss_list)})
         
 
@@ -309,7 +308,7 @@ def test_train_white(chess_df):
 # Logistic Regression for black with 5 folds to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, and log loss were determined for black.
 
-def test_train_black(chess_df):
+def test_train_black(chess_df, path='images/roc_curve_black.png'):
     chess_df = chess_df.copy()
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
@@ -370,8 +369,7 @@ def test_train_black(chess_df):
         plt.title('ROC Curve: Black')
         plt.xlabel('False Positive Rate: Black')
         plt.ylabel('True Positive Rate: Black')
-        plt.show()
-        plt.savefig("images/roc_curve_black.png")
+        plt.savefig(path)
         return print({'Mean Accuracy List [Black]': np.mean(accuracy_list), 'Mean Precision List [Black]': np.mean(precision_list), 'Mean Recall List [Black]': np.mean(recall_list), 'Mean F1 Score [Black]': np.mean(f1_score_list), 'Mean Log Loss [Black]': np.mean(log_loss_list)})
         
 
@@ -393,8 +391,8 @@ if __name__ == "__main__":
 
     # chess_outcomes_black = chess_differentials_black(chess_data)
 
-    chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
+    # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
-    # log_reg_white = test_train_white(chess_data)
+    log_reg_white = test_train_white(chess_data)
 
     # log_reg_black = test_train_black(chess_data)
