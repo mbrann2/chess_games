@@ -106,19 +106,20 @@ def wins_versus_draws(chess_games, path="images/wins_versus_draws.png"):
 ###
 
 # Null Hypothesis 1: The rating differential between black and white has no significance on which player wins the game.
-# Alternate Hypothesis 1: The rating differential between black and white has a significance on which player wins the game.
+# Alternative Hypothesis 1: The rating differential between black and white has a significance on which player wins the game.
 
 # Null Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has no significance on which player wins the game.
-# Alternate Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has a significance on which player wins the game.
+# Alternative Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has a significance on which player wins the game.
 
 # Null Hypothesis 3: The number of turns in a game has no significance on which player wins the game.
-# Alternate Hypothesis 3: The number of turns in a game has significance on which player wins the game.
+# Alternative Hypothesis 3: The number of turns in a game has significance on which player wins the game.
 
 ###
 
-# Look at stronger white players, greater than 100 ELO, and map wins to 1 and draws or losses to 0.
-# Perform t-test to analyze the p-value and ultimately the null & alternate hypotheses for white differentials.
-# Histogram pot displaying white wins versus white draws when white is the superior opponent.
+# Look at stronger white players, greater than 100 ELO difference, and map wins to 1 and draws or losses to 0.
+# Perform two-sample independent t-tests to analyze the p-values and ultimately the null & alternative hypotheses for white rating differentials, 
+# number of consecutive moves where a player follows an optimal book and number of turns in the game.
+# Histogram plot displaying white wins versus white draws and losses when white is the superior opponent.
 
 def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2='images/white_wins_vs_draws_&_losses.png'):
     chess_df = chess_df.copy()
@@ -164,8 +165,6 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
 
     plt.savefig(path1)
 
-    plt.show()
-
     plt.clf()
 
     fig,ax = plt.subplots()
@@ -180,8 +179,10 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
     ax.set_title('White Wins Versus Draws + Losses')
     ax.set_ylabel('# of Wins & Draws + Losses')
     ax.set_xlabel('Wins & Draws + Losses: Total Games [5,666]')
-    plt.savefig(path2)
+
     ax.legend();
+
+    plt.savefig(path2)
     
     white_win_percentage = (4110 /(4110+1556))*100
 
@@ -198,8 +199,9 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
 
 ###
 
-# Look at stronger black players, greater than 100 ELO, and map black wins to 1 and black draws or losses to 0.
-# Perform t-test to analyze the p-value and ultimately the null & alternate hypotheses for black differentials.
+# Look at stronger black players, greater than 100 ELO difference, and map black wins to 1 and black draws or losses to 0.
+# Perform two-sample independent t-tests to analyze the p-values and ultimately the null & alternative hypotheses for black rating differentials, 
+# number of consecutive moves where a player follows an optimal book and number of turns in the game.
 # Histogram plot displaying black wins versus black draws and losses when black is the superior opponent.
 
 def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2='images/black_wins_vs_draws_&_losses.png'):
@@ -242,9 +244,7 @@ def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2=
 
     fig.tight_layout()
 
-    plt.savefig(path1)
-
-    plt.show() 
+    plt.savefig(path1) 
 
     plt.clf()
 
@@ -279,7 +279,7 @@ def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2=
 
 ###
 
-# Perform nonlinear Spearman correlation to see potential correlations between rating differentals, fow white and black respectively, and their victory status.
+# Perform linear, Pearson correlations and nonlinear, Spearman correlation to see potential correlations between rating differentals, for white and black respectively, and their victory status.
 def chess_correlations(white, black, path="images/correlations.png"):
     white = white.copy()
     black = black.copy()
@@ -590,7 +590,7 @@ if __name__ == "__main__":
 
     # chess_outcomes_white = chess_differentials_white(chess_data)
 
-    chess_outcomes_black = chess_differentials_black(chess_data)
+    # hess_outcomes_black = chess_differentials_black(chess_data)
 
     # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
