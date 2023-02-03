@@ -324,6 +324,9 @@ def chess_correlations(white, black, path="images/correlations.png"):
 
 # There is no true correlation between white or black being a significantly stronger opponent, in terms of ELO rating, 
 # and winning games versus losing or drawing games, as seen from the linear, Pearson correlations and the nonlinear, Spearman correlations below.
+# Shockingly, there is no true correlation between white or black being a significantly stronger opponent, in terms of ELO rating, and winning games versus losing or drawing games, 
+# as seen from the linear, Pearson correlations and the nonlinear, Spearman correlations below. 
+# Intuitively, one would think that over a continuous span of graudually increasing ELO differentials, there would be a correlation to the majority, binary class of 1, which is wins.
 
 
 # The p-value is less than 0.05, so we reject the null hypothesis and there is significant difference, or impact, 
@@ -444,7 +447,7 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
 # We can ascertain that our logistic regression model has very few false negatives, which would be missing the ability to successsfully predict the correct, positive class of 1 and instead predicting a negative class of 0.
 # The average F1 Score across all 5 folds for white was very good with a result of approximately 83.91%.
 # The average F1 score is a function of the average precision and average recall. 
-# The relatively good mean precision of 72.70% and stellar mean recall of 99.24% is yielding the great F1 score of approximately 83.91% 
+# The relatively good mean precision of 72.70% and stellar mean recall of 99.24% is yielding the great F1 score of approximately 83.91%. 
 # The average log loss across all 5 folds for white was only average with a result of approximately 0.5660, where 0 is optimal. 
 # The associated average probability of the log loss across all 5 folds for white was determined to be approximately 0.5696, which effectively denotes the probability of the logistic regression model predicting the proper class, 0 for draws & losses, and 1 for wins, respectively.
 # The mediocre result for average log loss and average log loss probability could be due to an imbalanced dataset that truly contains significantly more wins, or binary values of 1, in comparsion to draws & losses, or binary values of 0.
@@ -557,7 +560,7 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
 # We can ascertain that our logistic regression model has very few false negatives, which would be missing the ability to successsfully predict the correct, positive class of 1 and instead predicting a negative class of 0.
 # The average F1 Score across all 5 folds for black was very good with a result of approximately 81.86%.
 # The average F1 score is a function of the average precision and average recall. 
-# The relatively good mean precision of 69.39% and stellar mean recall of 99.83% is yielding the great F1 score of approximately 81.86% 
+# The relatively good mean precision of 69.39% and stellar mean recall of 99.83% is yielding the great F1 score of approximately 81.86%. 
 # The average log loss across all 5 folds for black was only average with a result of approximately 0.5969, where 0 is optimal. 
 # The associated average probability of the log loss across all 5 folds for black was determined to be approximately 0.5162, which effectively denotes the probability of the logistic regression model predicting the proper class, 0 for draws & losses, and 1 for wins, respectively.
 # The mediocre result for average log loss and average log loss probability could be due to an imbalanced dataset that truly contains significantly more wins, or binary values of 1, in comparsion to draws & losses, or binary values of 0.
