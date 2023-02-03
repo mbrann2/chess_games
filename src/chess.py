@@ -8,28 +8,24 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import scipy.stats as spicystats
 import sys
+import statsmodels.api as sm
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error, accuracy_score, precision_score, recall_score, roc_curve
-
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from pandas.plotting import scatter_matrix
-import statsmodels.api as sm
 from statsmodels.stats.proportion import proportions_ztest
-
-
 from sklearn.preprocessing import StandardScaler
 from sklearn import metrics
 from sklearn.metrics import f1_score, log_loss
 
 sys.path.insert(0, '../src')
 sys.path.insert(0, '../data')
-
 
 import chess
 
@@ -38,6 +34,7 @@ import chess
 # Read in dataset and drop columns containing immaterial data.
 def read_file(csv_file):
     chess_games = pd.read_csv(csv_file)
+
     chess_games.drop(['rated', 'id', 'created_at', 'last_move_at', 'increment_code', 'white_id', 'black_id', 'opening_eco'], axis=1, inplace=True)
     return chess_games
 
@@ -48,21 +45,25 @@ def read_file(csv_file):
 def chess_victories(chess_df, path="images/chess_outcomes_breakdown.png"):
      victory_status = chess_df['victory_status'].value_counts()
 
-     fig, ax = plt.subplots(figsize = (10,6))
+     fig, ax = plt.subplots(figsize = (6,6))
 
      sizes = victory_status.values
      labels = ['Resignations: 11,147', 'Mates: 6,325', 'Out of Time: 1,680', 'Draws: 906']
      explode = (0.1, 0.1, 0.2, 0.2)
      c = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+
      plt.pie(sizes, explode=explode, colors=c, 
         autopct='%1.1f%%', shadow=True, startangle=140)
+
      ax.legend( labels, title="Victory Status",
           loc="center left",
           bbox_to_anchor=(1, 0, 0.5, 1))
+
      ax.set_title("Victory Status Breakdown")
      plt.tight_layout()
      plt.axis('equal')
      plt.savefig(path)
+
      return print({ 'Chess Outcomes Breakdown': victory_status})
 
 ###
@@ -71,33 +72,47 @@ def chess_victories(chess_df, path="images/chess_outcomes_breakdown.png"):
 
 def wins_versus_draws(chess_games, path="images/wins_versus_draws.png"):
     game_status = chess_games['victory_status'].value_counts('draw')
+
     game_status_percent = game_status * 100
+
     victories_percent = str(sum(game_status_percent.iloc[:3]))
+
     draws_percent = str(sum(game_status_percent.iloc[-1:]))
-    game_wins = sum(game_status.iloc[:3])
-    game_draws = sum(game_status.iloc[-1:])
+
     
-    fig, ax = plt.subplots(figsize = (10,6))
+    
+    fig, ax = plt.subplots(figsize = (6,6))
 
     sizes = victories_percent, draws_percent
     labels = ['Wins: 19,152', 'Draws: 906']
     explode = (0.2, 0.2)
     c = ['#1f77b4', '#ff7f0e']
+
     plt.pie(sizes, explode=explode, colors=c, 
         autopct='%1.1f%%', shadow=True, startangle=140)
+
     ax.legend(labels, title="Wins & Draws",
           loc="center left",
           bbox_to_anchor=(1, 0, 0.5, 1))
+
     ax.set_title("Wins Versus Draws")
+
     plt.tight_layout()
     plt.axis('equal')
     plt.savefig(path)
+
     return print({ '% of Victories': victories_percent, '% of Draws': draws_percent})
 
 ###
 
-# Null Hypothesis: The rating differential between black and white has no significant impact on which player wins the game.
-# Alternate Hypothesis: The rating differential between black and white has a significant impact on which player wins the game.
+# Null Hypothesis 1: The rating differential between black and white has no significance on which player wins the game.
+# Alternate Hypothesis 1: The rating differential between black and white has a significance on which player wins the game.
+
+# Null Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has no significance on which player wins the game.
+# Alternate Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has a significance on which player wins the game.
+
+# Null Hypothesis 3: The number of turns in a game has no significance on which player wins the game.
+# Alternate Hypothesis 3: The number of turns in a game has significance on which player wins the game.
 
 ###
 
@@ -105,10 +120,12 @@ def wins_versus_draws(chess_games, path="images/wins_versus_draws.png"):
 # Perform t-test to analyze the p-value and ultimately the null & alternate hypotheses for white differentials.
 # Histogram pot displaying white wins versus white draws when white is the superior opponent.
 
-def chess_differentials_white(chess_df, path="images/white_wins_vs_draws_&_losses.png"):
+def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2='images/white_wins_vs_draws_&_losses.png'):
     chess_df = chess_df.copy()
+
     chess_df['Rating Differential White'] = (chess_df['white_rating'] - chess_df['black_rating']).astype(int)
-    black_wins = chess_df[(chess_df['Rating Differential White'] > 100) & (chess_df['winner'] == 'black')].value_counts()
+
+    
     white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
     
     def victory_status(s):
@@ -120,11 +137,41 @@ def chess_differentials_white(chess_df, path="images/white_wins_vs_draws_&_losse
     
     white_greater_100['winner'] = white_greater_100['winner'].apply(victory_status).astype(int)
     
-    white_ttest = spicystats.ttest_ind(white_greater_100['Rating Differential White'], white_greater_100['winner'], equal_var = False)
+    white_ttest_rating_diff = spicystats.ttest_ind(white_greater_100['Rating Differential White'], white_greater_100['winner'], equal_var = False)
+    white_ttest_opening_play = spicystats.ttest_ind(white_greater_100['opening_ply'], white_greater_100['winner'], equal_var = False)
+    white_ttest_num_turns = spicystats.ttest_ind(white_greater_100['turns'], white_greater_100['winner'], equal_var = False)
+
+    tests = [white_ttest_rating_diff, white_ttest_opening_play, white_ttest_num_turns]
+    rows = ['White t-test Rating Differential', 'White t-test Opening Play', 'White t-test # Turns']
+    columns = ['t-statistic', 'p-value']
+
+    print({'White t-test Rating Differential': white_ttest_rating_diff, 'White t-test Opening Play': white_ttest_opening_play, 'White t-test # Turns': white_ttest_num_turns})
     
     fig, ax = plt.subplots()
+    ax.set_axis_off()
+    ax.set_title('White t-tests Breakdown')
+
+    table = ax.table(
+    cellText = tests, 
+    rowLabels = rows, 
+    colLabels = columns,
+    rowColours =["palegreen"] * 10, 
+    colColours =["palegreen"] * 10,
+    cellLoc ='center', 
+    loc ='upper left')
+
+    fig.tight_layout()
+
+    plt.savefig(path1)
+
+    plt.show()
+
+    plt.clf()
+
+    fig,ax = plt.subplots()
 
     white_victory = white_greater_100[white_greater_100['winner'] == 1]
+
     white_draw_or_loss = white_greater_100[white_greater_100['winner'] == 0]
     
 
@@ -133,13 +180,21 @@ def chess_differentials_white(chess_df, path="images/white_wins_vs_draws_&_losse
     ax.set_title('White Wins Versus Draws + Losses')
     ax.set_ylabel('# of Wins & Draws + Losses')
     ax.set_xlabel('Wins & Draws + Losses: Total Games [5,666]')
-
-    ax.legend()
-    plt.savefig(path)
+    plt.savefig(path2)
+    ax.legend();
+    
     white_win_percentage = (4110 /(4110+1556))*100
+
     white_draw_or_loss_percentage = (1556 /(4110+1556))*100
-    print({ 'White Superior Games': white_greater_100, 'White T-test':white_ttest, 'White Victories': white_victory, 'White Draws or Losses': white_draw_or_loss, 'White Win Pct': white_win_percentage, 'White Draw or Loss Pct': white_draw_or_loss_percentage, 'Black Wins': black_wins})
+
+    print ({'White Win Pct': white_win_percentage, 'White Draw or Loss Pct': white_draw_or_loss_percentage})
+
     return white_greater_100
+
+# The p-value for rating differential, number of turns, and opening play is less than 0.05, with values of 0.00, so we reject all the null hypotheses and there is significant difference, or impact, 
+# between: the white rating differentials, the consecutive moves used from an optimal book opening, the number of turns in the game, all in relation to who wins the game.
+# Additionally, the high t-statistic of approximately 116.77, 109.70, and 129.08 for rating differentials, opening book play, and number of turns simply indicates the confidence in the predictor coefficient, since it's very large, and further supports the decision to reject the null hypothesis.  
+# When only considering wins and draws plus losses of a higher-ranked white opponent, white wins 72.54% of the time and draws or loses 27.46% of the time over 5,666 games.
 
 ###
 
@@ -147,10 +202,11 @@ def chess_differentials_white(chess_df, path="images/white_wins_vs_draws_&_losse
 # Perform t-test to analyze the p-value and ultimately the null & alternate hypotheses for black differentials.
 # Histogram plot displaying black wins versus black draws and losses when black is the superior opponent.
 
-def chess_differentials_black(chess_df, path="images/black_wins_vs_draws_&_losses.png"):
+def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2='images/black_wins_vs_draws_&_losses.png'):
     chess_df = chess_df.copy()
+
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
-    white_wins = chess_df[(chess_df['Rating Differential Black'] > 100) & (chess_df['winner'] == 'white')].value_counts()
+
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
 
     def victory_status(s):
@@ -162,11 +218,40 @@ def chess_differentials_black(chess_df, path="images/black_wins_vs_draws_&_losse
     
     black_greater_100['winner'] = black_greater_100['winner'].apply(victory_status).astype(int)
     
-    black_ttest = spicystats.ttest_ind(black_greater_100['Rating Differential Black'], black_greater_100['winner'], equal_var = False)
+    black_ttest_rating_diff = spicystats.ttest_ind(black_greater_100['Rating Differential Black'], black_greater_100['winner'], equal_var = False)
+    black_ttest_opening_play = spicystats.ttest_ind(black_greater_100['opening_ply'], black_greater_100['winner'], equal_var = False)
+    black_ttest_num_turns = spicystats.ttest_ind(black_greater_100['turns'], black_greater_100['winner'], equal_var = False)
     
+    tests = [black_ttest_rating_diff, black_ttest_opening_play, black_ttest_num_turns]
+    rows = ['Black t-test Rating Differential', 'Black t-test Opening Play', 'Black t-test # Turns']
+    columns = ['t-statistic', 'p-value']
+    print({'Black t-test Rating Differential': black_ttest_rating_diff, 'Black t-test Opening Play': black_ttest_opening_play, 'Black t-test # Turns': black_ttest_num_turns})
+    
+    fig, ax = plt.subplots()
+    ax.set_axis_off()
+    ax.set_title('Black t-tests Breakdown')
+
+    table = ax.table(
+    cellText = tests, 
+    rowLabels = rows, 
+    colLabels = columns,
+    rowColours =["palegreen"] * 10, 
+    colColours =["palegreen"] * 10,
+    cellLoc ='center', 
+    loc ='upper left')
+
+    fig.tight_layout()
+
+    plt.savefig(path1)
+
+    plt.show() 
+
+    plt.clf()
+
     fig,ax = plt.subplots()
     
     black_victory = black_greater_100[black_greater_100['winner'] == 1]
+
     black_draw_or_loss = black_greater_100[black_greater_100['winner'] == 0]
     
     ax.hist(black_victory['winner'], color = 'b', alpha = 0.5, label = 'Black Wins: 3,623 [69.27%]')
@@ -175,18 +260,30 @@ def chess_differentials_black(chess_df, path="images/black_wins_vs_draws_&_losse
     ax.set_ylabel('# of Wins & Draws + Losses')
     ax.set_xlabel('Wins & Draws + Losses: Total Games [5,230]')
 
-    ax.legend()
-    plt.savefig(path)
+    ax.legend();
+
+    plt.savefig(path2)
+   
     black_win_percentage = (3623 /(3623+1607))*100
+
     black_draw_or_loss_percentage = (1607 /(3623+1607))*100
-    print({' Black Superior Games': black_greater_100, 'Black T-test': black_ttest, 'Black Victories': black_victory, 'Black Draws or Losses': black_draw_or_loss, 'Black Win Pct': black_win_percentage, 'Black Draw or Loss Pct': black_draw_or_loss_percentage, 'White Wins': white_wins})
+
+    print({'White Win Pct': black_win_percentage, 'White Draw or Loss Pct': black_draw_or_loss_percentage})
+
     return black_greater_100
+   
+# The p-value for rating differential, number of turns, and opening play is less than 0.05, with values of 0.00, so we reject all the null hypotheses and there is significant difference, or impact, 
+# between: the black rating differentials, the consecutive moves used from an optimal book opening, the number of turns in the game, all in relation to who wins the game.
+# Additionally, the high t-statistic of approximately 114.47, 99.36, and 127.15 for rating differentials, opening book play, and number of turns simply indicates the confidence in the predictor coefficient, since it's very large, and further supports the decision to reject the null hypothesis.
+# When only considering wins and draws plus losses of a higher-ranked black opponent, black wins 69.27% of the time and draws or loses 30.73% of the time over 5,230 games.
+
 ###
 
 # Perform nonlinear Spearman correlation to see potential correlations between rating differentals, fow white and black respectively, and their victory status.
 def chess_correlations(white, black, path="images/correlations.png"):
     white = white.copy()
     black = black.copy()
+
     white_correlation_spearman = white['Rating Differential White'].corr(white['winner'], method ='spearman')
 
     black_correlation_spearman = black['Rating Differential Black'].corr(black['winner'], method ='spearman')
@@ -196,10 +293,11 @@ def chess_correlations(white, black, path="images/correlations.png"):
     black_correlation_pearson = black['Rating Differential Black'].corr(black['winner'], method ='pearson')
 
     fig,ax = plt.subplots()
+
     x_axis = [white_correlation_pearson, black_correlation_pearson, white_correlation_spearman, black_correlation_spearman]
     x_axis_names = ['White Correlation Pearon', 'Black Correlation Pearson', 'White Correlation Spearman', 'Black Correlation Spearman']
-    c = ['silver', 'black', 'silver', 'black']
     
+    c = ['silver', 'black', 'silver', 'black']
     ax.set_ylim(0.15, 0.20)
     plt.bar(x_axis_names, x_axis, color=c)
     ax.set_title('Black and White Correlations')
@@ -207,11 +305,17 @@ def chess_correlations(white, black, path="images/correlations.png"):
     ax.set_xlabel('Correlations')
     plt.tight_layout()
     fig.set_size_inches(16, 10)
+
     plt.savefig(path)
+
     white_pearson_legend = mpatches.Patch(color= 'silver', label='White Correlation Pearon: 0.1668')
+
     black_pearson_legend = mpatches.Patch(color= 'black', label='Black Correlation Pearson: 0.1778')
+
     white_spearman_legend = mpatches.Patch(color= 'silver', label='White Correlation Spearman: 0.1785')
+
     black_spearman_legend = mpatches.Patch(color= 'black', label='Black Correlation Spearman: 0.1902')
+
     plt.legend(handles=[white_pearson_legend, black_pearson_legend, white_spearman_legend, black_spearman_legend])
 
     return print({ 'Pearson White Correlation': white_correlation_pearson, 'Pearson Black Correlation': black_correlation_pearson, 'Spearman White Correlation': white_correlation_spearman, 'Spearman Black Correlation': black_correlation_spearman})
@@ -237,8 +341,10 @@ def chess_correlations(white, black, path="images/correlations.png"):
 
 def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images/stats_model_white.png'):
     chess_df = chess_df.copy()
+
     chess_df['Rating Differential White'] = (
         chess_df['white_rating'] - chess_df['black_rating']).astype(int)
+
     white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
 
     def victory_status(s):
@@ -273,6 +379,7 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
         plt.axis('off')
         plt.tight_layout()
         plt.savefig(path2)
+
         plt.clf()
 
         kf = KFold(k)
@@ -302,22 +409,28 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
             plt.plot(fpr, tpr, label='ROC curve ' + f'{i+1}' + ' (area = %0.2f)' % roc_auc)
         
             accuracy_list.append(metrics.accuracy_score(y_test_kfold, y_pred))
+
             precision_list.append(metrics.precision_score(y_test_kfold, y_pred))
+
             recall_list.append(metrics.recall_score(y_test_kfold,y_pred))
+
             f1_score_list.append(f1_score(y_test_kfold, y_pred, average='binary', zero_division='warn'))
+
             log_loss_list.append(log_loss(y_test_kfold, y_prob, normalize = True))
+
             log_loss_prob = (-1*np.log(log_loss_list))
+        
         plt.plot([0,1], [0,1])
         plt.legend()
         plt.title('ROC Curve: White')
         plt.xlabel('False Positive Rate: White')
         plt.ylabel('True Positive Rate: White')
         plt.tight_layout()
+
         plt.savefig(path1)
+
         return print({'Mean Accuracy List [White]': np.mean(accuracy_list), 'Mean Precision List [White]': np.mean(precision_list), 'Mean Recall List [White]': np.mean(recall_list), 'Mean F1 Score [White]': np.mean(f1_score_list), 'Mean Log Loss [White]': np.mean(log_loss_list), 'Mean Log Loss Probability [White]': np.mean(log_loss_prob)})
         
-
-
     cross_val_linear(X, y, 5)
 
 
@@ -343,7 +456,9 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
 
 def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images/stats_model_black.png'):
     chess_df = chess_df.copy()
+
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
+
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
 
     def victory_status(s):
@@ -357,6 +472,7 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
 
 
     X = black_greater_100[['turns', 'opening_ply', 'Rating Differential Black']].astype(int)
+
     y = black_greater_100['winner']
 
     random_seed = 8
@@ -406,22 +522,28 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
             plt.plot(fpr, tpr, label='ROC curve ' + f'{i+1}' + ' (area = %0.2f)' % roc_auc)
         
             accuracy_list.append(metrics.accuracy_score(y_test_kfold, y_pred))
+
             precision_list.append(metrics.precision_score(y_test_kfold, y_pred))
+
             recall_list.append(metrics.recall_score(y_test_kfold,y_pred))
+
             f1_score_list.append(f1_score(y_test_kfold, y_pred, average='binary', zero_division='warn'))
+
             log_loss_list.append(log_loss(y_test_kfold, y_prob, normalize = True))
+
             log_loss_prob = (-1*np.log(log_loss_list))
+        
         plt.plot([0,1], [0,1])
         plt.legend()
         plt.title('ROC Curve: Black')
         plt.xlabel('False Positive Rate: Black')
         plt.ylabel('True Positive Rate: Black')
         plt.tight_layout()
+
         plt.savefig(path1)
+
         return print({'Mean Accuracy List [Black]': np.mean(accuracy_list), 'Mean Precision List [Black]': np.mean(precision_list), 'Mean Recall List [Black]': np.mean(recall_list), 'Mean F1 Score [Black]': np.mean(f1_score_list), 'Mean Log Loss [Black]': np.mean(log_loss_list), 'Mean Log Loss Probability [Black]': np.mean(log_loss_prob)})
-        
-
-
+            
     cross_val_linear(X, y, 5)
 
 
@@ -468,7 +590,7 @@ if __name__ == "__main__":
 
     # chess_outcomes_white = chess_differentials_white(chess_data)
 
-    # chess_outcomes_black = chess_differentials_black(chess_data)
+    chess_outcomes_black = chess_differentials_black(chess_data)
 
     # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
