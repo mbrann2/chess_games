@@ -301,9 +301,9 @@ def chess_correlations(white, black, path="images/correlations.png"):
     c = ['silver', 'black', 'silver', 'black']
     ax.set_ylim(0.15, 0.20)
     plt.bar(x_axis_names, x_axis, color=c)
-    ax.set_title('Black and White Correlations')
-    ax.set_ylabel('Correlation Values')
-    ax.set_xlabel('Correlations')
+    ax.set_title('Black and White Correlations', fontsize = 16)
+    ax.set_ylabel('Correlation Values', fontsize = 16)
+    ax.set_xlabel('Correlations', fontsize = 16)
     plt.tight_layout()
     fig.set_size_inches(16, 10)
 
@@ -325,10 +325,9 @@ def chess_correlations(white, black, path="images/correlations.png"):
 
 # There is no true correlation between white or black being a significantly stronger opponent, in terms of ELO rating, 
 # and winning games versus losing or drawing games, as seen from the linear, Pearson correlations and the nonlinear, Spearman correlations below.
-# Shockingly, there is no true correlation between white or black being a significantly stronger opponent, in terms of ELO rating, and winning games versus losing or drawing games, 
-# as seen from the linear, Pearson correlations and the nonlinear, Spearman correlations below. 
-# Intuitively, one would think that over a continuous span of graudually increasing ELO differentials, there would be a correlation to the majority, binary class of 1, which is wins.
-
+# Intuitively, one would think that over a continuous span of gradually increasing ELO differentials, there would be a correlation to the majority, binary class of 1, which is wins.
+# Despite all of the players having respectable ratings at the very least, this counterintuition could be due to players still being considerably lower rated than grandmasters 
+# which leads to miscalculations and outright blunders, despite being the higher-rated player. 
 
 # The p-value is less than 0.05, so we reject the null hypothesis and there is significant difference, or impact, 
 # between the black rating differentials, with black being the superior opponent, and who wins the game.
