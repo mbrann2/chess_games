@@ -23,6 +23,7 @@ from statsmodels.stats.proportion import proportions_ztest
 from sklearn.preprocessing import StandardScaler
 from sklearn import metrics
 from sklearn.metrics import f1_score, log_loss
+from tabulate import tabulate
 
 sys.path.insert(0, '../src')
 sys.path.insert(0, '../data')
@@ -180,7 +181,7 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
     ax.set_ylabel('# of Wins & Draws + Losses')
     ax.set_xlabel('Wins & Draws + Losses: Total Games [5,666]')
 
-    ax.legend();
+    ax.legend()
 
     plt.savefig(path2)
     
@@ -260,7 +261,7 @@ def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2=
     ax.set_ylabel('# of Wins & Draws + Losses')
     ax.set_xlabel('Wins & Draws + Losses: Total Games [5,230]')
 
-    ax.legend();
+    ax.legend()
 
     plt.savefig(path2)
    
@@ -423,6 +424,13 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
 
             log_loss_prob = (-1*np.log(log_loss_list))
         
+        white_stats = [['White Average Accuracy', 'White Average Precision', 'White Average Recall', 'White Average F1 Score', 'White Average Log Loss', 'White Average Log Loss Probability'], [np.mean(accuracy_list), np.mean(precision_list), np.mean(recall_list), np.mean(f1_score_list), np.mean(log_loss_list), np.mean(log_loss_prob)]]
+        white_stats_table = ((tabulate(white_stats, headers='firstrow', tablefmt='grid')))
+        textFilePath = "../images/white_stats_table.txt"
+        with open(textFilePath, 'w') as f:
+            f.write(white_stats_table)
+
+
         plt.plot([0,1], [0,1])
         plt.legend()
         plt.title('ROC Curve: White')
@@ -536,6 +544,12 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
 
             log_loss_prob = (-1*np.log(log_loss_list))
         
+        black_stats = [['Black Average Accuracy', 'Black Average Precision', 'Black Average Recall', 'Black Average F1 Score', 'Black Average Log Loss', 'Black Average Log Loss Probability'], [np.mean(accuracy_list), np.mean(precision_list), np.mean(recall_list), np.mean(f1_score_list), np.mean(log_loss_list), np.mean(log_loss_prob)]]
+        black_stats_table = ((tabulate(black_stats, headers='firstrow', tablefmt='grid')))
+        textFilePath = "../images/black_stats_table.txt"
+        with open(textFilePath, 'w') as f:
+            f.write(black_stats_table)
+
         plt.plot([0,1], [0,1])
         plt.legend()
         plt.title('ROC Curve: Black')
@@ -593,7 +607,7 @@ if __name__ == "__main__":
 
     # chess_outcomes_white = chess_differentials_white(chess_data)
 
-    # hess_outcomes_black = chess_differentials_black(chess_data)
+    # chess_outcomes_black = chess_differentials_black(chess_data)
 
     # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
