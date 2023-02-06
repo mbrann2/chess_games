@@ -34,6 +34,11 @@ import chess
 
 # Read in dataset and drop columns containing immaterial data.
 def read_file(csv_file):
+
+    '''Inputs: Excel File: Chess Dataset'''
+
+    '''Outputs: Filtered Chess Dataframe'''
+
     chess_games = pd.read_csv(csv_file)
 
     chess_games.drop(['rated', 'id', 'created_at', 'last_move_at', 'increment_code', 'white_id', 'black_id', 'opening_eco'], axis=1, inplace=True)
@@ -44,34 +49,44 @@ def read_file(csv_file):
 # Grab and count the chess victory status, broken down by category. Make pie chart to depict the delineations.
 
 def chess_victories(chess_df, path="images/chess_outcomes_breakdown.png"):
-     victory_status = chess_df['victory_status'].value_counts()
 
-     fig, ax = plt.subplots(figsize = (6,6))
+    '''Inputs: Filtered Chess Dataframe, Pathfile for Chess Outcomes Pie Plot '''
 
-     sizes = victory_status.values
-     labels = ['Resignations: 11,147', 'Mates: 6,325', 'Out of Time: 1,680', 'Draws: 906']
-     explode = (0.1, 0.1, 0.2, 0.2)
-     c = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+    '''Outputs: Numerical Breakdown of Victory Statuses [Resignations, Mates, Out of Time, & Draws], Chess Outcomes Pie Plot'''
 
-     plt.pie(sizes, explode=explode, colors=c, 
+    victory_status = chess_df['victory_status'].value_counts()
+
+    fig, ax = plt.subplots(figsize = (6,6))
+
+    sizes = victory_status.values
+    labels = ['Resignations: 11,147', 'Mates: 6,325', 'Out of Time: 1,680', 'Draws: 906']
+    explode = (0.1, 0.1, 0.2, 0.2)
+    c = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+
+    plt.pie(sizes, explode=explode, colors=c, 
         autopct='%1.1f%%', shadow=True, startangle=140)
 
-     ax.legend( labels, title="Victory Status",
+    ax.legend( labels, title="Victory Status",
           loc="center left",
           bbox_to_anchor=(1, 0, 0.5, 1))
 
-     ax.set_title("Victory Status Breakdown")
-     plt.tight_layout()
-     plt.axis('equal')
-     plt.savefig(path)
+    ax.set_title("Victory Status Breakdown")
+    plt.tight_layout()
+    plt.axis('equal')
+    plt.savefig(path)
 
-     return print({ 'Chess Outcomes Breakdown': victory_status})
+    return print({ 'Chess Outcomes Breakdown': victory_status})
 
 ###
 
 # Look at games won, by mate, out of time, and resignation, and compare to draws. Make pie charts for both delineations. 
 
 def wins_versus_draws(chess_games, path="images/wins_versus_draws.png"):
+
+    '''Inputs: Filtered Chess Dataframe, Pathfile for Wins Vs Draws Pie Plot '''
+
+    '''Outputs: % of Victories, % of Draws, Pie Plot of Wins Vs Draws'''
+
     game_status = chess_games['victory_status'].value_counts('draw')
 
     game_status_percent = game_status * 100
@@ -106,23 +121,18 @@ def wins_versus_draws(chess_games, path="images/wins_versus_draws.png"):
 
 ###
 
-# Null Hypothesis 1: The rating differential between black and white has no significance on which player wins the game.
-# Alternative Hypothesis 1: The rating differential between black and white has a significance on which player wins the game.
-
-# Null Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has no significance on which player wins the game.
-# Alternative Hypothesis 2: The number of consecutive moves where a player follows an optimal book opening has a significance on which player wins the game.
-
-# Null Hypothesis 3: The number of turns in a game has no significance on which player wins the game.
-# Alternative Hypothesis 3: The number of turns in a game has significance on which player wins the game.
-
-###
-
 # Look at stronger white players, greater than 100 ELO difference, and map wins to 1 and draws or losses to 0.
 # Perform two-sample independent t-tests to analyze the p-values and ultimately the null & alternative hypotheses for white rating differentials, 
 # number of consecutive moves where a player follows an optimal book and number of turns in the game.
 # Histogram plot displaying white wins versus white draws and losses when white is the superior opponent.
 
 def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2='images/white_wins_vs_draws_&_losses.png'):
+    
+    '''Inputs: Filtered Chess Dataframe, Pathfile for White T-tests Table, Pathfile for White Wins Vs Draws Plot'''
+
+    '''Outputs: White T-Tests Table, White Wins Vs Draws or Losses Plot, White WIn %, White Loss or Draw %, 
+    White T-test Values [t-statistic & p-value]: Rating Differential, Opening Play, and # of Turns'''
+
     chess_df = chess_df.copy()
 
     chess_df['Rating Differential White'] = (chess_df['white_rating'] - chess_df['black_rating']).astype(int)
@@ -131,6 +141,11 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
     white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
     
     def victory_status(s):
+
+        '''Inputs: String [White Winner Column]'''
+
+        '''Outputs: Updated White Winner Column with Binary Values.'''
+
         if s == 'black' or s == 'draw' :
             return 0
 
@@ -193,19 +208,20 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
 
     return white_greater_100
 
-# The p-value for rating differential, number of turns, and opening play is less than 0.05, with values of 0.00, so we reject all the null hypotheses and there is significant difference, or impact, 
-# between: the white rating differentials, the consecutive moves used from an optimal book opening, the number of turns in the game, all in relation to who wins the game.
-# Additionally, the high t-statistic of approximately 116.77, 109.70, and 129.08 for rating differentials, opening book play, and number of turns simply indicates the confidence in the predictor coefficient, since it's very large, and further supports the decision to reject the null hypothesis.  
-# When only considering wins and draws plus losses of a higher-ranked white opponent, white wins 72.54% of the time and draws or loses 27.46% of the time over 5,666 games.
-
 ###
 
-# Look at stronger black players, greater than 100 ELO difference, and map black wins to 1 and black draws or losses to 0.
+# Look at stronger black players, greater than 100 ELO difference, and map wins to 1 and draws or losses to 0.
 # Perform two-sample independent t-tests to analyze the p-values and ultimately the null & alternative hypotheses for black rating differentials, 
 # number of consecutive moves where a player follows an optimal book and number of turns in the game.
 # Histogram plot displaying black wins versus black draws and losses when black is the superior opponent.
 
 def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2='images/black_wins_vs_draws_&_losses.png'):
+
+    '''Inputs: Filtered Chess Dataframe, Pathfile for Black T-tests Table, Pathfile for Black Wins Vs Draws Plot'''
+
+    '''Outputs: Black T-Tests Table, Black Wins Vs Draws or Losses Plot, Black WIn %, Black Loss or Draw %, 
+    Black T-test Values [t-statistic & p-value]: Rating Differential, Opening Play, and # of Turns'''
+
     chess_df = chess_df.copy()
 
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
@@ -213,6 +229,11 @@ def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2=
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
 
     def victory_status(s):
+
+        '''Inputs: String [Black Winner Column]'''
+
+        '''Outputs: Updated Black Winner Column with Binary Values.'''
+
         if s == 'white' or s == 'draw' :
             return 0
 
@@ -269,19 +290,20 @@ def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2=
 
     black_draw_or_loss_percentage = (1607 /(3623+1607))*100
 
-    print({'White Win Pct': black_win_percentage, 'White Draw or Loss Pct': black_draw_or_loss_percentage})
+    print({'Black Win Pct': black_win_percentage, 'Black Draw or Loss Pct': black_draw_or_loss_percentage})
 
     return black_greater_100
    
-# The p-value for rating differential, number of turns, and opening play is less than 0.05, with values of 0.00, so we reject all the null hypotheses and there is significant difference, or impact, 
-# between: the black rating differentials, the consecutive moves used from an optimal book opening, the number of turns in the game, all in relation to who wins the game.
-# Additionally, the high t-statistic of approximately 114.47, 99.36, and 127.15 for rating differentials, opening book play, and number of turns simply indicates the confidence in the predictor coefficient, since it's very large, and further supports the decision to reject the null hypothesis.
-# When only considering wins and draws plus losses of a higher-ranked black opponent, black wins 69.27% of the time and draws or loses 30.73% of the time over 5,230 games.
-
 ###
 
 # Perform linear, Pearson correlations and nonlinear, Spearman correlation to see potential correlations between rating differentals, for white and black respectively, and their victory status.
 def chess_correlations(white, black, path="images/correlations.png"):
+
+    '''Inputs: Filtered White Dataframe [chess_differentials_white function], 
+    Filtered Black Dataframe [chess_differentials_black function], Pathfile for Correlations Plot.'''
+
+    '''Outputs: White Correlation Pearon, Black Correlation Pearson, White Correlation Spearman, Black Correlation Spearman, & Correlations Plot.'''
+
     white = white.copy()
     black = black.copy()
 
@@ -321,28 +343,15 @@ def chess_correlations(white, black, path="images/correlations.png"):
 
     return print({ 'Pearson White Correlation': white_correlation_pearson, 'Pearson Black Correlation': black_correlation_pearson, 'Spearman White Correlation': white_correlation_spearman, 'Spearman Black Correlation': black_correlation_spearman})
 
-
-
-# There is no true correlation between white or black being a significantly stronger opponent, in terms of ELO rating, 
-# and winning games versus losing or drawing games, as seen from the linear, Pearson correlations and the nonlinear, Spearman correlations below.
-# Intuitively, one would think that over a continuous span of gradually increasing ELO differentials, there would be a correlation to the majority, binary class of 1, which is wins.
-# Despite all of the players having respectable ratings at the very least, this counterintuition could be due to players still being considerably lower rated than grandmasters 
-# which leads to miscalculations and outright blunders, despite being the higher-rated player. 
-
-# The p-value is less than 0.05, so we reject the null hypothesis and there is significant difference, or impact, 
-# between the black rating differentials, with black being the superior opponent, and who wins the game.
-# When only considering wins and draws plus losses of a higher-ranked black opponent, black wins 69.27% of the time and draws or loses 30.73% of the time over 5,230 games.
-
-# The p-value is less than 0.05, so we reject the null hypothesis and there is significant difference, or impact, 
-# between the white rating differentials, with white being the superior opponent, and who wins the game.
-# When only considering wins and draws plus losses of a higher-ranked white opponent, white wins 72.54% of the time and draws or loses 27.46% of the time over 5,666 games.
-
 ###
 
 # Logistic Regression for white with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm.
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for white.
 
 def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images/stats_model_white.png'):
+
+    '''Inputs: Filtered Chess Dataframe, Pathfile for White ROC Curve, Pathfile for White Stats Model.'''
+
     chess_df = chess_df.copy()
 
     chess_df['Rating Differential White'] = (
@@ -351,6 +360,11 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
     white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
 
     def victory_status(s):
+
+        '''Inputs: String [White Winner Column]'''
+
+        '''Outputs: Updated White Winner Column with Binary Values.'''
+
         if s == 'black' or s == 'draw':
             return 0
 
@@ -367,6 +381,8 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
     random_seed = 8
 
     def cross_val_linear(X, y, k):
+
+        '''Inputs: X(Features [White]), y(Target [White]), amd k(# of Folds [White])'''
 
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=random_seed, stratify=y)
@@ -396,6 +412,11 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
         log_loss_list = []
     
         for i, (train_index, test_index) in enumerate(kf.split(X_train)):
+
+            '''Inputs: Training Data [White], Test Data [White], Split k Folds [White]'''
+            
+            '''Outputs: Mean Accuracy List [White], Mean Precision List [White], Mean Recall List [White], Mean F1 Score [White], 
+             Mean Log Loss [White], Mean Log Loss Probability [White], & Stats Table [Black]'''
         
             X_train_kfold = X_train.iloc[train_index]
             y_train_kfold = y_train.iloc[train_index]
@@ -443,28 +464,15 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
         
     cross_val_linear(X, y, 5)
 
-
-# The average accuracy and average precision across all 5 folds for white are both respectable and nearly the same with the average accuracy being approximately 72.42% and the average precision being approximately 72.70%.
-# Accuracy is a function of true positives, true negatives, false positives, or probability of false alarms, and false negatives, or probability of incorrectly identifying that an attribute is absent.
-# We can ascertain that our logistic regression model is being reduced due to the reasonable amount of false positives that are present and is supported by our precision also being reduced due to the same false positive generation.
-# Precision is a function of true positives, or probability of detection, and false positives, which is the probability of a false alarm. 
-# We can ascertain that our logistic regression model has a reasonable amount of false positives, or incorrectly predicting the positive class of 1, when it should be predicting the negative class of 0, hence false positives are generated. 
-# The average recall across all 5 folds for white was excellent with a result of approximately 99.24%.
-# Recall is a function of true positives, or probability of detection, and false negatives, which is the probability of incorrectly identifying that an attribute is absent.
-# We can ascertain that our logistic regression model has very few false negatives, which would be missing the ability to successsfully predict the correct, positive class of 1 and instead predicting a negative class of 0.
-# The average F1 Score across all 5 folds for white was very good with a result of approximately 83.91%.
-# The average F1 score is a function of the average precision and average recall. 
-# The relatively good mean precision of 72.70% and stellar mean recall of 99.24% is yielding the great F1 score of approximately 83.91%. 
-# The average log loss across all 5 folds for white was only average with a result of approximately 0.5660, where 0 is optimal. 
-# The associated average probability of the log loss across all 5 folds for white was determined to be approximately 0.5696, which effectively denotes the probability of the logistic regression model predicting the proper class, 0 for draws & losses, and 1 for wins, respectively.
-# The mediocre result for average log loss and average log loss probability could be due to an imbalanced dataset that truly contains significantly more wins, or binary values of 1, in comparsion to draws & losses, or binary values of 0.
-
 ###
 
 # Logistic Regression for black with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for black.
 
 def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images/stats_model_black.png'):
+
+    '''Inputs: Filtered Chess Dataframe, Pathfile for Black ROC Curve, Pathfile for Black Stats Model.'''
+
     chess_df = chess_df.copy()
 
     chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
@@ -472,6 +480,11 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
     black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
 
     def victory_status(s):
+
+        '''Inputs: String [Black Winner Column]'''
+
+        '''Outputs: Updated Black Winner Column with Binary Values.'''
+
         if s == 'white' or s == 'draw' :
             return 0
 
@@ -490,6 +503,8 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
     
     def cross_val_linear(X, y, k):    
         
+        '''Inputs: X(Features [Black]), y(Target [Black]), amd k(# of Folds [Black])'''
+
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=random_seed, stratify=y)
 
         log_reg = sm.Logit(y_train, X_train).fit()
@@ -516,7 +531,12 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
         log_loss_list = []
     
         for i, (train_index, test_index) in enumerate(kf.split(X_train)):
+
+            '''Inputs: Training Data [Black], Test Data [Black], Split k Folds [Black]'''
         
+            '''Outputs: Mean Accuracy List [Black], Mean Precision List [Black], Mean Recall List [Black], Mean F1 Score [Black], 
+            Mean Log Loss [Black], Mean Log Loss Probability [Black], & Stats Table [Black]'''
+
             X_train_kfold = X_train.iloc[train_index]
             y_train_kfold = y_train.iloc[train_index]
             X_test_kfold = X_train.iloc[test_index]
@@ -562,36 +582,6 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
             
     cross_val_linear(X, y, 5)
 
-
-# The average accuracy and average precision across all 5 folds for black are both respectable and nearly the same with the average accuracy being approximately 69.38% and the average precision being approximately 69.39%.
-# Accuracy is a function of true positives, true negatives, false positives, or probability of false alarms, and false negatives, or probability of incorrectly identifying that an attribute is absent.
-# We can ascertain that our logistic regression model is being reduced due to the reasonable amount of false positives that are present and is supported by our precision also being reduced due to the same false positive generation.
-# Precision is a function of true positives, or probability of detection, and false positives, which is the probability of a false alarm. 
-# We can ascertain that our logistic regression model has a reasonable amount of false positives, or incorrectly predicting the positive class of 1, when it should be predicting the negative class of 0, hence false positives are generated. 
-# The average recall across all 5 folds for black was excellent with a result of approximately 99.83%.
-# Recall is a function of true positives, or probability of detection, and false negatives, which is the probability of incorrectly identifying that an attribute is absent.
-# We can ascertain that our logistic regression model has very few false negatives, which would be missing the ability to successsfully predict the correct, positive class of 1 and instead predicting a negative class of 0.
-# The average F1 Score across all 5 folds for black was very good with a result of approximately 81.86%.
-# The average F1 score is a function of the average precision and average recall. 
-# The relatively good mean precision of 69.39% and stellar mean recall of 99.83% is yielding the great F1 score of approximately 81.86%. 
-# The average log loss across all 5 folds for black was only average with a result of approximately 0.5969, where 0 is optimal. 
-# The associated average probability of the log loss across all 5 folds for black was determined to be approximately 0.5162, which effectively denotes the probability of the logistic regression model predicting the proper class, 0 for draws & losses, and 1 for wins, respectively.
-# The mediocre result for average log loss and average log loss probability could be due to an imbalanced dataset that truly contains significantly more wins, or binary values of 1, in comparsion to draws & losses, or binary values of 0.
-
-###
-
-# Conclusion
-# When comparing filtered games where white is the superior opponent with black being the superior opponent, the total games in each respective database very similar with comparable wins versus draws and losses. 
-# When running one version of a logistic regression model for both white and black games, we see very similar average metrics for the accuracy, precision, recall, F1 score, log loss, and log loss probability. 
-# However, when utilizing a different logistic regression statistical model, a worthwhile not is looking at the respective inputs, or features, for our white and black chess games, respectively. 
-# The three features utilized for both black and white games were rating differential, number of turns in the game, and opening play, which is the consecutive moves from the initiation of the game that opponents stick to an optimal, book opening. 
-# In general, typically skilled players, even with reasonable rating differentials, will have games with a substantial amount of moves because they avoid suboptimal moves and outright blunders.
-# More specifically, with the white games, our three features all had p-values of 0.000, which are significant since they are less than 0.05, and thus are a good choice to be incorporated into predicting our target, or binary output of wins versus draws and losses.
-# Regarding the black games, the rating differential feature was determined to be significant at 0.000, but interestingly enough the number of terms and opening play were didn't yeild significant p-values, or greater than 0.05, at 0.225 and 0.372, respectively.
-# There has been extensive, cumulative analysis on chess throughout the years to determine that white has an innate advantage simply by being the first player to make a move.
-# The respective difference in significances of our features between white and black games might indicate the fact that due to the inherent disadvantage of black being the responsive player, there is no significance on the number of moves and sticking to an optimal book opening. 
-# Essentially, the disadvantage of moving second might trump the ability to follow optimal book openings and play in technically sound games that contain a large number of moves.
-
 ###
 
 # Respective functions listed below to test outputs to terminal and images directory.
@@ -606,7 +596,7 @@ if __name__ == "__main__":
 
     # chess_outcomes_white = chess_differentials_white(chess_data)
 
-    # chess_outcomes_black = chess_differentials_black(chess_data)
+    chess_outcomes_black = chess_differentials_black(chess_data)
 
     # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
