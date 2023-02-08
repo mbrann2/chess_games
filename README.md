@@ -10,7 +10,7 @@
 # Table of Contents
 - [Introduction](#introduction)
 - [Background Information](#background-information)
-- [Overall Information](#overall)
+- [Overall Information & Data Wrangling](#overall--data-wrangling)
 - [Data Analysis & Vizualization](#data-analysis--vizualization)
     - [Chess Outcomes Breakdown](#chess-outcomes-breakdown)
     - [Hypothesis Testings](#hypothesis-testings)
