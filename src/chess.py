@@ -236,7 +236,7 @@ def chess_differentials_white(chess_df, path1='images/white_t_tests.png', path2=
     
     ax.set_xlabel('Draws + Losses & Wins: Total Games [5,666]', fontsize = 16)
 
-    ax.legend(fontsize = 16)
+    ax.legend(fontsize = 10)
 
     plt.savefig(path2)
     
@@ -364,7 +364,7 @@ def chess_differentials_black(chess_df, path1='images/black_t_tests.png', path2=
     
     ax.set_xlabel('Draws + Losses & Wins: Total Games [5,230]', fontsize = 16)
 
-    ax.legend(fontsize = 16)
+    ax.legend(fontsize = 10)
 
     plt.savefig(path2)
    
@@ -682,6 +682,6 @@ if __name__ == "__main__":
 
     # chess_corr = chess_correlations(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
 
-    log_reg_white = test_train_white(chess_data)
+    # log_reg_white = test_train_white(chess_data)
 
     # log_reg_black = test_train_black(chess_data)
