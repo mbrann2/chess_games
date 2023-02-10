@@ -25,6 +25,8 @@ from sklearn import metrics
 from sklearn.metrics import f1_score, log_loss
 from tabulate import tabulate
 
+import chess 
+
 sys.path.insert(0, '../src')
 sys.path.insert(0, '../data')
 
@@ -522,31 +524,9 @@ def correlations_plot(chess_df, path="images/correlations.png"):
 # Logistic Regression for white with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm.
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for white.
 
-def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images/stats_model_white.png'):
+def test_train_white(white_greater_100, path1='images/roc_curve_white.png', path2='images/stats_model_white.png', path3='images/white_stats_table.png'):
 
-    '''Inputs: Filtered Chess Dataframe, Pathfile for White ROC Curve, Pathfile for White Stats Model.'''
-
-    chess_df = chess_df.copy()
-
-    chess_df['Rating Differential White'] = (
-        chess_df['white_rating'] - chess_df['black_rating']).astype(int)
-
-    white_greater_100 = chess_df[(chess_df['Rating Differential White'] > 100)]
-
-    def victory_status(s):
-
-        '''Inputs: String [White Winner Column]'''
-
-        '''Outputs: Updated White Winner Column with Binary Values.'''
-
-        if s == 'black' or s == 'draw':
-            return 0
-
-        else:
-            return 1
-
-    white_greater_100['winner'] = white_greater_100['winner'].apply(
-        victory_status).astype(int)
+    '''Inputs: Filtered White Chess Dataframe, Pathfile for White ROC Curve, Pathfile for White Stats Model.'''
 
     X = white_greater_100[['turns', 'opening_ply',
                            'Rating Differential White']].astype(int)
@@ -617,13 +597,6 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
             log_loss_list.append(log_loss(y_test_kfold, y_prob, normalize = True))
 
             log_loss_prob = (-1*np.log(log_loss_list))
-        
-        white_stats = [['White Average Accuracy', 'White Average Precision', 'White Average Recall', 'White Average F1 Score', 'White Average Log Loss', 'White Average Log Loss Probability'], [np.mean(accuracy_list), np.mean(precision_list), np.mean(recall_list), np.mean(f1_score_list), np.mean(log_loss_list), np.mean(log_loss_prob)]]
-        white_stats_table = ((tabulate(white_stats, headers='firstrow', tablefmt='grid')))
-        textFilePath = "../images/white_stats_table.txt"
-        with open(textFilePath, 'w') as f:
-            f.write(white_stats_table)
-
 
         plt.plot([0,1], [0,1])
         plt.legend(fontsize = 16)
@@ -634,8 +607,28 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
 
         plt.savefig(path1)
 
-        return print({'Mean Accuracy List [White]': np.mean(accuracy_list), 'Mean Precision List [White]': np.mean(precision_list), 'Mean Recall List [White]': np.mean(recall_list), 'Mean F1 Score [White]': np.mean(f1_score_list), 'Mean Log Loss [White]': np.mean(log_loss_list), 'Mean Log Loss Probability [White]': np.mean(log_loss_prob)})
+        plt.rcParams["figure.figsize"] = [14, 6]
+        plt.rcParams["figure.autolayout"] = True
+
+        fig, axs = plt.subplots(1, 1)
+
+        data = [(np.mean(accuracy_list), np.mean(precision_list), np.mean(recall_list), np.mean(f1_score_list), np.mean(log_loss_list), np.mean(log_loss_prob))]
         
+        columns = ("White Average Accuracy", "White Average Precision", "White Average Recall", "White Average F1 Score", "White Average Log Loss", "White Average Log Loss Probability")
+        
+        axs.set_title('White Stats Table', fontsize = 16)
+        axs.axis('tight')
+        axs.axis('off')
+        
+        white_stats_table = axs.table(cellText=data, colLabels=columns, loc='center')
+        
+        fontsize = 24
+        white_stats_table.set_fontsize(fontsize)
+        
+        plt.tight_layout()
+        
+        plt.savefig(path3)
+             
     cross_val_linear(X, y, 5)
 
 ###
@@ -643,30 +636,9 @@ def test_train_white(chess_df, path1='images/roc_curve_white.png', path2='images
 # Logistic Regression for black with 5 folds, with a data split of 80% for train and 20% for test, to determine true positive rate, or probability of detection, as a fucntion of false positive rate, or probability of false alarm. 
 # Also, across all 5 folds, the average accuracy, precision, recall, F1 Score, log loss, and log loss probability were determined for black.
 
-def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images/stats_model_black.png'):
+def test_train_black(black_greater_100, path1='images/roc_curve_black.png', path2='images/stats_model_black.png', path3='images/black_stats_table.png'):
 
     '''Inputs: Filtered Chess Dataframe, Pathfile for Black ROC Curve, Pathfile for Black Stats Model.'''
-
-    chess_df = chess_df.copy()
-
-    chess_df['Rating Differential Black'] = (chess_df['black_rating'] - chess_df['white_rating']).astype(int)
-
-    black_greater_100 = chess_df[(chess_df['Rating Differential Black'] > 100)]
-
-    def victory_status(s):
-
-        '''Inputs: String [Black Winner Column]'''
-
-        '''Outputs: Updated Black Winner Column with Binary Values.'''
-
-        if s == 'white' or s == 'draw' :
-            return 0
-
-        else:
-            return 1
-    
-    black_greater_100['winner'] = black_greater_100['winner'].apply(victory_status).astype(int)
-
 
     X = black_greater_100[['turns', 'opening_ply', 'Rating Differential Black']].astype(int)
 
@@ -674,7 +646,6 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
 
     random_seed = 8
    
-    
     def cross_val_linear(X, y, k):    
         
         '''Inputs: X(Features [Black]), y(Target [Black]), amd k(# of Folds [Black])'''
@@ -736,12 +707,6 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
             log_loss_list.append(log_loss(y_test_kfold, y_prob, normalize = True))
 
             log_loss_prob = (-1*np.log(log_loss_list))
-        
-        black_stats = [['Black Average Accuracy', 'Black Average Precision', 'Black Average Recall', 'Black Average F1 Score', 'Black Average Log Loss', 'Black Average Log Loss Probability'], [np.mean(accuracy_list), np.mean(precision_list), np.mean(recall_list), np.mean(f1_score_list), np.mean(log_loss_list), np.mean(log_loss_prob)]]
-        black_stats_table = ((tabulate(black_stats, headers='firstrow', tablefmt='grid')))
-        textFilePath = "../images/black_stats_table.txt"
-        with open(textFilePath, 'w') as f:
-            f.write(black_stats_table)
 
         plt.plot([0,1], [0,1])
         plt.legend(fontsize = 16)
@@ -752,7 +717,27 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
 
         plt.savefig(path1)
 
-        return print({'Mean Accuracy List [Black]': np.mean(accuracy_list), 'Mean Precision List [Black]': np.mean(precision_list), 'Mean Recall List [Black]': np.mean(recall_list), 'Mean F1 Score [Black]': np.mean(f1_score_list), 'Mean Log Loss [Black]': np.mean(log_loss_list), 'Mean Log Loss Probability [Black]': np.mean(log_loss_prob)})
+        plt.rcParams["figure.figsize"] = [14, 6]
+        plt.rcParams["figure.autolayout"] = True
+
+        fig, axs = plt.subplots(1, 1)
+
+        data = [(np.mean(accuracy_list), np.mean(precision_list), np.mean(recall_list), np.mean(f1_score_list), np.mean(log_loss_list), np.mean(log_loss_prob))]
+        
+        columns = ("Black Average Accuracy", "Black Average Precision", "Black Average Recall", "Black Average F1 Score", "Black Average Log Loss", "Black Average Log Loss Probability")
+        
+        axs.set_title('Black Stats Table', fontsize = 16)
+        axs.axis('tight')
+        axs.axis('off')
+        
+        white_stats_table = axs.table(cellText=data, colLabels=columns, loc='center')
+        
+        fontsize = 24
+        white_stats_table.set_fontsize(fontsize)
+        
+        plt.tight_layout()
+        
+        plt.savefig(path3) 
             
     cross_val_linear(X, y, 5)
 
@@ -760,14 +745,15 @@ def test_train_black(chess_df, path1='images/roc_curve_black.png', path2='images
 
 # Respective functions listed below to test outputs to terminal and images directory.
 
-# white_ttest_rating_diff, white_ttest_opening_play, white_ttest_num_turns, black_ttest_rating_diff, black_ttest_opening_play, black_ttest_num_turns = t_tests(chess_differentials_white(chess_data), chess_differentials_black(chess_data))
+# For log_reg_white & log_reg_black, only run with chess_data uncommented and 
+# specific log_reg function(white or black) uncommented(not both) or images will not be properly generated.
 
 if __name__ == "__main__":
-
+    
     # For log_reg_white & log_reg_black, only run with chess_data uncommented and 
     # specific log_reg function(white or black) uncommented(not both) or images will not be properly generated.
 
-    # chess_data = read_file("data/games.csv")
+    chess_data = read_file("data/games.csv")
 
     # victories_breakdown = chess_victories(chess_data)
 
@@ -793,7 +779,6 @@ if __name__ == "__main__":
 
     # chess_corr = correlations_plot(chess_data)
 
-    # log_reg_white = test_train_white(chess_data)
+    # log_reg_white = test_train_white(chess_differentials_white(chess_data))
 
-    # log_reg_black = test_train_black(chess_data)
-
+    # log_reg_black = test_train_black(chess_differentials_black(chess_data))
